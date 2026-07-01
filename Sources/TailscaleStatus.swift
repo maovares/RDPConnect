@@ -15,7 +15,7 @@ enum TailscaleChecker {
     ]
 
     static func check() async -> TailscaleState {
-        guard let binary = candidatePaths.first(where: { FileManager.default.isExecutableFile(atPath: $0) }) else {
+        guard let binary = BinaryLocator.find("tailscale", fallbacks: candidatePaths) else {
             return .notInstalled
         }
 
