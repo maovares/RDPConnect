@@ -127,14 +127,28 @@ final class SidebarViewController: NSViewController, NSTableViewDataSource, NSTa
 
     func tableView(_ tableView: NSTableView, viewFor tableColumn: NSTableColumn?, row: Int) -> NSView? {
         let cellId = NSUserInterfaceItemIdentifier("nameCell")
-        let cell: NSTableCellField
-        if let reused = tableView.makeView(withIdentifier: cellId, owner: self) as? NSTableCellField {
+        let cell: NSTableCellView
+        if let reused = tableView.makeView(withIdentifier: cellId, owner: self) as? NSTableCellView {
             cell = reused
         } else {
-            cell = NSTableCellField(labelWithString: "")
+            cell = NSTableCellView()
             cell.identifier = cellId
+
+            let label = NSTextField(labelWithString: "")
+            label.translatesAutoresizingMaskIntoConstraints = false
+            label.lineBreakMode = .byTruncatingTail
+            cell.addSubview(label)
+            cell.textField = label
+
+            // El label no traía constraints propias, así que AppKit lo dejaba pegado
+            // arriba del row en vez de centrarlo verticalmente.
+            NSLayoutConstraint.activate([
+                label.leadingAnchor.constraint(equalTo: cell.leadingAnchor, constant: 4),
+                label.trailingAnchor.constraint(lessThanOrEqualTo: cell.trailingAnchor, constant: -4),
+                label.centerYAnchor.constraint(equalTo: cell.centerYAnchor),
+            ])
         }
-        cell.stringValue = store.profiles[row].name
+        cell.textField?.stringValue = store.profiles[row].name
         return cell
     }
 
@@ -143,8 +157,6 @@ final class SidebarViewController: NSViewController, NSTableViewDataSource, NSTa
         onSelect?(store.profiles[safe: row])
     }
 }
-
-private final class NSTableCellField: NSTextField {}
 
 extension Array {
     subscript(safe index: Int) -> Element? {
